@@ -1,0 +1,92 @@
+use HomeOffice
+
+create table Usuario(
+	id int not null IDENTITY,
+	razaoSocial varchar(300) not null,
+	login varchar(15) not null,
+	senha varchar(15) not null,
+	endereco varchar(250) null,
+	numero int null,
+	bairro varchar(100) null,
+	complemento varchar(100) null,
+	cep int null,
+	cidade varchar(100) null,
+	estado varchar(2) null,
+	email varchar(150) null,
+	telefone1 varchar(16) null,
+	telefone2 varchar(16) null,
+	telefone3 varchar(16) null,
+	tipoUsuario varchar(1) not null,
+	status varchar(1) null,
+	primary key(id)
+)
+
+create table ServicoTipo(
+	id int not null identity,
+	nome varchar(150) null,
+	status varchar(1) null,
+	primary key(id)
+)
+
+create table PrestacaoServico(
+	id int not null identity,
+	idUsuarioPrestador int not null,
+	descricaoDoServico varchar(2000) null,
+	idServicoTipo int not null,
+	valorHora numeric(18, 2) null,
+	status varchar(1) null,
+	primary key(id)
+)
+
+create table PrestacaoServicoData(
+	id int not null identity,
+	idPrestacaoServico int not null,
+	dataHoraInicio datetime null,
+	dataHoraFim datetime null,
+	primary key(id)	
+)
+
+create table AceitarServico(
+	id int not null identity,
+	idPrestacaoServico int not null,
+	idUsuarioCliente int not null,
+	descricaoServico varchar(2000) null,
+	dataHoraInicio datetime null,
+	dataHoraFim datetime null,
+	status varchar(1) null,
+	primary key(id)
+)
+
+create table AvaliacaoServico(
+	id int not null identity,
+	idPrestacaoServico int not null,
+	idAceitarServico int not null,
+	descricao varchar(2000) null,
+	nota int null,
+	status varchar(1) null,
+	primary key(id)
+)
+
+
+
+
+
+use HomeOffice
+
+select ps.id, u.razaoSocial, ps.descricaoDoServico, ps.valorHora, psd.dataHoraInicio, psd.dataHoraFim
+from PrestacaoServico ps
+left outer join PrestacaoServicoData psd on ps.id = psd.idPrestacaoServico
+inner join Usuario u on u.id = ps.idUsuarioPrestador and u.status = 'A'
+where ps.status = 'A'
+
+select u.razaoSocial, SUM(vs.nota) / COUNT(vs.id) mediaAvaliacao from Usuario u
+left join PrestacaoServico ps on ps.idUsuarioPrestador = u.id
+left join AvaliacaoServico vs on vs.idPrestacaoServico = ps.id
+where u.status = 'A' and u.tipoUsuario = 'P'
+
+select ps.id, ps.descricaoDoServico, st.nome, c.razaoSocial, cs.descricaoServico, cs.dataHoraInicio, cs.dataHoraFim
+from AceitarServico cs
+inner join Usuario c on c.id = cs.idUsuarioCliente and c.status = 'A'
+inner join PrestacaoServico ps on ps.id = cs.idPrestacaoServico and ps.status = 'A'
+inner join ServicoTipo st on st.id = ps.idServicoTipo and st.status = 'A'
+where cs.status = 'P'
